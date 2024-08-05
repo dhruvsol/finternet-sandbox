@@ -65,11 +65,11 @@ pub struct User {
     pub user_metadata: HashMap<String, String>, // User Metadata
     /// User Preferred Chain ID
     pub preferred_chain: FinternetChainID,
-    /// User Asset Ledger
-    pub asset_ledger: HashMap<FinternetUID, u64>, // Asset Ledger for the user (Asset ID, Units)
-    /// User Asset Config
-    pub asset_config: HashMap<FinternetUID, HashMap<String, String>>, // Asset specific config like
-                                                                      // whitelisted senders, spend limits etc
+    /// User Token Manager Ledger
+    pub token_manager_ledger: HashMap<FinternetUID, u64>, // Token Manager Ledger for the user (TM ID, Units)
+    /// User Token Manager Config
+    pub token_manager_config: HashMap<FinternetUID, HashMap<String, String>>, // Token Manager specific config like
+                                                                              // whitelisted senders, spend limits etc
 }
 
 /// Trait for loading the data into memory
@@ -104,6 +104,11 @@ pub trait UserManager {
     ) -> Result<FinternetUID, String>;
 }
 
+pub struct HolderConfig {
+    pub holder_id: FinternetUID,
+    pub holding_share: u64,
+}
+
 // Asset Struct
 /// Asset struct to store the asset details
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -122,12 +127,21 @@ pub struct Asset {
     pub modified_at: u64,
     /// Asset Type
     pub asset_type: AssetType,
-    /// Asset Status
-    pub status: AssetStatus,
+    // This can be check each time to check for config
+    pub asset_config: Vec<AssetConfig>,
     /// Holder
-    pub holders: Vec<FinternetUID>, // Give the holders a proper type. Holder is a user
+    pub holders: Vec<HolderConfig>, // Give the holders a proper type. Holder is a user
     // NOTE: This could be problematic for multi holders
-    pub asset_metadata: HashMap<String, String>, // Asset Metadata
+    pub metadata: HashMap<String, String>, // Asset Metadata
+}
+
+pub enum AssetConfigEnum {
+    LOCK,
+    DELEGATE,
+}
+pub struct AssetConfig {
+    pub config: AssetConfigEnum,
+    pub authority: Option<FinternetUID>,
 }
 
 // Asset Type
@@ -138,16 +152,6 @@ pub enum AssetType {
     Fungible,
     /// Non-Fungible Asset
     NonFungible,
-}
-
-// Asset Status
-/// Asset Status
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum AssetStatus {
-    /// Locked Asset
-    Locked,
-    /// Unlocked Asset
-    Unlocked,
 }
 
 // Token Manager Trait
