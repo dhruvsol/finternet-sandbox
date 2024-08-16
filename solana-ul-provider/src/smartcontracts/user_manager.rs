@@ -9,7 +9,10 @@ use solana_sdk::{
     pubkey,
     signature::{read_keypair_file, Keypair},
 };
-use squads_multisig::{client}
+use squads_multisig::{
+    client::{self as squads_client, MultisigCreateAccounts, MultisigCreateArgsV2},
+    squads_multisig_program::squads_multisig_program,
+};
 use std::{collections::HashMap, sync::Arc};
 
 pub fn get_client() -> Client<Arc<Keypair>> {
@@ -34,7 +37,18 @@ impl UserManager for SolanaUserManager {
     fn create_user(&self, _user: User) -> Result<String, String> {
         let anchor_client = get_client();
         let program = client.program(my_program::ID)?;
-
+        let ix = squads_client::multisig_create(
+            MultisigCreateAccounts {},
+            MultisigCreateArgsV2 {
+                threshold: 1,
+                members: [],
+                time_lock: 0,
+                config_authority: None,
+                memo: None,
+                rent_collector: None,
+            },
+            squads_multisig_program::ID,
+        );
         Ok("Success".to_string())
     }
 
